@@ -1,8 +1,8 @@
 package silver;
 
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Stream;
 
 public class OrderStore {
 
@@ -27,4 +27,19 @@ public class OrderStore {
             throw new OrderCancelledException();
         }
     }
+
+    public Stream<Order> buyOrderSummary() {
+        return localStore
+                .values()
+                .stream()
+                .filter(order -> order.isOfType(OrderType.BUY))
+                .sorted();
+    }
+
+    public Stream<Order> sellOrderSummary() {
+        return localStore
+                .values()
+                .stream()
+                .filter(order -> order.isOfType(OrderType.SELL))
+                .sorted();    }
 }

@@ -62,9 +62,24 @@ public class LiveOrderBoardTest {
     public void summarizeEmptyBoardState() {
         String expectedSummary = "Live Order Board\n" +
                 "BUY ORDERS\n" +
-                "(NONE)\n" +
-                "SELL ORDERS\n" +
-                "(NONE)\n";
+                "SELL ORDERS\n";
+        OrderSnapshot snapshot = board.summarize();
+        assertEquals(expectedSummary, snapshot.toString());
+    }
+
+    @Test
+    public void ordersSortedBuyHighestFirst() {
+        String expectedSummary = "Live Order Board\n" +
+                "BUY ORDERS\n" +
+                "3.5 kg for £350\n" +
+                "3.5 kg for £300\n" +
+                "3.5 kg for £250\n" +
+                "SELL ORDERS\n";
+
+        // commit orders in non-sequential order to emphasise sortedness
+        board.addOrder(order.setPrice(UnsignedLong.valueOf(300L)).createOrder());
+        board.addOrder(order.setPrice(UnsignedLong.valueOf(250L)).createOrder());
+        board.addOrder(order.setPrice(UnsignedLong.valueOf(350L)).createOrder());
 
         OrderSnapshot snapshot = board.summarize();
         assertEquals(expectedSummary, snapshot.toString());
