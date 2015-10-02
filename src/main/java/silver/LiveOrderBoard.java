@@ -19,7 +19,11 @@ public class LiveOrderBoard {
         return orderStore.size();
     }
 
-    public void cancelOrder(UUID orderId) {
+    public void cancelOrder(UUID orderId) throws OrderCancelledException {
         orderStore.remove(orderId);
+    }
+
+    public OrderSnapshot summarize() {
+        return OrderSnapshot.of(this);
     }
 }

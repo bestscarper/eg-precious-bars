@@ -3,7 +3,9 @@ package silver;
 import com.google.common.primitives.UnsignedLong;
 import org.junit.Before;
 import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import java.util.UUID;
 
@@ -35,7 +37,7 @@ public class LiveOrderBoardTest {
     }
 
     @Test
-    public void shouldRemoveACancelledOrder() {
+    public void shouldRemoveACancelledOrder() throws OrderCancelledException {
 
         UUID orderId = board.addOrder(order.createOrder());
         board.addOrder(order.setPrice(UnsignedLong.valueOf(300L)).createOrder());
@@ -45,9 +47,26 @@ public class LiveOrderBoardTest {
         assertEquals(1, board.orderCount());
     }
 
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
+
     @Test
-    @Ignore
-    public void summarizeBoardState() {
-        assertTrue(true);
+    public void shouldFailIfOrderCancelledTwice() throws OrderCancelledException {
+        thrown.expect(OrderCancelledException.class);
+        UUID orderId = board.addOrder(order.createOrder());
+        board.cancelOrder(orderId);
+        board.cancelOrder(orderId);
+    }
+
+    @Test
+    public void summarizeEmptyBoardState() {
+        String expectedSummary = "Live Order Board\n" +
+                "BUY ORDERS\n" +
+                "(NONE)\n" +
+                "SELL ORDERS\n" +
+                "(NONE)\n";
+
+        OrderSnapshot snapshot = board.summarize();
+        assertEquals(expectedSummary, snapshot.toString());
     }
 }

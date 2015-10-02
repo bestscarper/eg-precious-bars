@@ -6,11 +6,12 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class OrderStore {
 
-    Map<UUID,Order> localStore = new ConcurrentHashMap<UUID, Order>();
+    // use default CHM settings for simplicity
+    ConcurrentHashMap<UUID,Order> localStore = new ConcurrentHashMap<UUID, Order>();
 
     public UUID add(Order order) {
         UUID orderNum = UUID.randomUUID();
-        localStore.put(orderNum,order);
+        localStore.putIfAbsent(orderNum, order);
         return orderNum;
     }
 
@@ -18,7 +19,12 @@ public class OrderStore {
         return localStore.size();
     }
 
-    public void remove(UUID orderId) {
-        localStore.remove(orderId);
+    synchronized public void remove(UUID orderId) throws OrderCancelledException {
+        if (localStore.containsKey(orderId)) {
+            localStore.remove(orderId);
+        }
+        else {
+            throw new OrderCancelledException();
+        }
     }
 }
