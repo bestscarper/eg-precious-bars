@@ -1,13 +1,21 @@
 package silver;
 
+import java.util.UUID;
+
 public class LiveOrderBoard {
 
+    public LiveOrderBoard(OrderStore orderStore) {
+        this.orderStore = orderStore;
+    }
 
-    public String addOrder(Order order) {
-        return null;
+    private OrderStore orderStore;
+
+    public UUID addOrder(Order order) {
+        UUID orderId = orderStore.add(order);
+        return orderId;
     }
 
     public int orderCount() {
-        return 2;
+        return orderStore.size();
     }
 }

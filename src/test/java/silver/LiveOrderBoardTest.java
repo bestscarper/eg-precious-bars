@@ -13,7 +13,7 @@ public class LiveOrderBoardTest {
     @Test
     public void shouldAcceptBuyAndSellOrders() {
 
-        LiveOrderBoard board = new LiveOrderBoard();
+        LiveOrderBoard board = new LiveOrderBoard(new OrderStore());
 
         OrderBuilder order = OrderBuilder.createOrderBuilder()
                 .setUserId(USER1)
