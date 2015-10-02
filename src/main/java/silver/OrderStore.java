@@ -17,4 +17,8 @@ public class OrderStore {
     public int size() {
         return localStore.size();
     }
+
+    public void remove(UUID orderId) {
+        localStore.remove(orderId);
+    }
 }

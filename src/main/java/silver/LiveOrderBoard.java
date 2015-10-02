@@ -18,4 +18,8 @@ public class LiveOrderBoard {
     public int orderCount() {
         return orderStore.size();
     }
+
+    public void cancelOrder(UUID orderId) {
+        orderStore.remove(orderId);
+    }
 }
