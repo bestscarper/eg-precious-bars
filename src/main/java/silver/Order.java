@@ -12,7 +12,7 @@ public class Order implements Comparable {
     }
 
     private String userId;
-    private UnsignedLong quantityGrammes;
+    protected UnsignedLong quantityGrammes;
     protected UnsignedLong price;
     private OrderType orderType;
 
@@ -35,7 +35,6 @@ public class Order implements Comparable {
             }
         }
         else {
-            //return this.orderType.ordinal() - order.orderType.ordinal();
             return this.orderType.compareTo(order.orderType);
         }
     }
@@ -44,5 +43,12 @@ public class Order implements Comparable {
     public String toString() {
         // e.g. 5.5 kg for £306
         return String.format("%.1f kg for £%d\n", this.quantityGrammes.doubleValue()/1000, this.price.longValue());
+    }
+
+    public Order mergeSamePrice(Order order) {
+        if (!this.orderType.equals(order.orderType)) {
+            throw new RuntimeException("Can't merge different order types");
+        }
+        return new Order("<merged>", this.quantityGrammes.plus(order.quantityGrammes), this.price, this.orderType);
     }
 }

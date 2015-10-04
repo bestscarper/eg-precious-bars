@@ -1,5 +1,8 @@
 package silver;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.primitives.UnsignedLong;
+
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
@@ -29,17 +32,44 @@ public class OrderStore {
     }
 
     public Stream<Order> buyOrderSummary() {
-        return localStore
+        Stream<Order> sorted = localStore
                 .values()
                 .stream()
                 .filter(order -> order.isOfType(OrderType.BUY))
                 .sorted();
+
+        List<Order> combined = coalesce(sorted);
+        return combined.stream();
     }
 
     public Stream<Order> sellOrderSummary() {
-        return localStore
+        Stream<Order> sorted = localStore
                 .values()
                 .stream()
                 .filter(order -> order.isOfType(OrderType.SELL))
-                .sorted();    }
+                .sorted();
+
+        List<Order> combined = coalesce(sorted);
+        return combined.stream();
+    }
+
+    @VisibleForTesting
+    protected static List<Order> coalesce(Stream<Order> sorted) {
+        // coalesce/combine orders of same price
+        // assumes stream if of single order type, and pre-sorted
+        // use imperative form because my brain hurts trying to build a reduction :(
+        ArrayList<Order> orders = new ArrayList<>();
+        UnsignedLong lastWeight = UnsignedLong.valueOf(0L);
+        sorted.forEach( o -> {
+            int lastElement = orders.size()-1;
+            if (lastElement >= 0 && o.price.equals(orders.get(lastElement).price)) {
+                orders.set(lastElement, o.mergeSamePrice(orders.get(lastElement)));
+            } else {
+                orders.add(o);
+            }
+        });
+
+        return orders;
+    }
+
 }

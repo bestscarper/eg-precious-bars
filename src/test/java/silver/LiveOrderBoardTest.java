@@ -84,4 +84,40 @@ public class LiveOrderBoardTest {
         OrderSnapshot snapshot = board.summarize();
         assertEquals(expectedSummary, snapshot.toString());
     }
+
+    @Test
+    public void ordersSortedSellLowestFirst() {
+        String expectedSummary = "Live Order Board\n" +
+                "BUY ORDERS\n" +
+                "SELL ORDERS\n" +
+                "3.5 kg for £250\n" +
+                "3.5 kg for £300\n" +
+                "3.5 kg for £350\n";
+
+        // commit orders in non-sequential order to emphasise sortedness
+        order.setOrderType(OrderType.SELL);
+        board.addOrder(order.setPrice(UnsignedLong.valueOf(300L)).createOrder());
+        board.addOrder(order.setPrice(UnsignedLong.valueOf(250L)).createOrder());
+        board.addOrder(order.setPrice(UnsignedLong.valueOf(350L)).createOrder());
+
+        OrderSnapshot snapshot = board.summarize();
+        assertEquals(expectedSummary, snapshot.toString());
+    }
+
+    @Test
+    public void combineOrdersAtSamePrice() {
+        String expectedSummary = "Live Order Board\n" +
+                "BUY ORDERS\n" +
+                "3.5 kg for £300\n" +
+                "SELL ORDERS\n" +
+                "7.0 kg for £300\n";
+
+        order.setOrderType(OrderType.SELL);
+        board.addOrder(order.setPrice(UnsignedLong.valueOf(300L)).createOrder());
+        board.addOrder(order.setPrice(UnsignedLong.valueOf(300L)).createOrder());
+        board.addOrder(order.setOrderType(OrderType.BUY).setPrice(UnsignedLong.valueOf(300L)).createOrder());
+
+        OrderSnapshot snapshot = board.summarize();
+        assertEquals(expectedSummary, snapshot.toString());
+    }
 }
