@@ -1,63 +1,80 @@
 package silver;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.primitives.UnsignedLong;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.mockito.internal.matchers.Or;
 
 import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 
-/**
- * Created by ashley on 03/10/2015.
- */
 public class OrderStoreTest {
 
-    private OrderBuilder order;
+    private OrderStore subject;
+    private OrderBuilder orderBuilder;
 
     @Before
-    public void setUp() throws Exception {
-        order = OrderBuilder.createOrderBuilder()
+    public void setUp()  {
+        subject = new OrderStore();
+        orderBuilder = OrderBuilder.createOrderBuilder()
                 .setUserId("user")
                 .setQuantityGrammes(UnsignedLong.valueOf(3500L))
                 .setPrice(UnsignedLong.valueOf(303L))
                 .setOrderType(OrderType.BUY);
-
     }
 
     @Test
-    public void shouldCombineOrdersWithSamePrice() throws Exception {
-
-        List<Order> orders = ImmutableList.of(
-                order.setPrice(UnsignedLong.valueOf(250)).createOrder(),
-                order.setPrice(UnsignedLong.valueOf(250)).createOrder(),
-                order.setPrice(UnsignedLong.valueOf(350)).createOrder()
-        );
-
-        List<Order> flattenedOrders = OrderStore.coalesce(orders.stream());
-
-        assertEquals(2, flattenedOrders.size());
-        Order found = flattenedOrders.get(0);
-        assertEquals(UnsignedLong.valueOf(7000L), found.quantityGrammes);
+    public void givenEmptyStore_sizeIsZero() {
+        assertEquals(subject.size(),0);
     }
 
     @Test
-    public void shouldHandleEmptyList() throws Exception {
-        List<Order> orders = ImmutableList.of();
+    public void givenEmptyStore_whenWeAddOrders_sizeIsNonZero() {
+        subject.add(orderBuilder.createOrder());
+        subject.add(orderBuilder.createOrder());
 
-        List<Order> flattenedOrders = OrderStore.coalesce(orders.stream());
-
-        assertEquals(0, flattenedOrders.size());
+        assertEquals(subject.size(),2);
     }
 
     @Test
-    public void shouldHandleSingleOrder() throws Exception {
-        List<Order> orders = ImmutableList.of(order.createOrder());
-
-        List<Order> flattenedOrders = OrderStore.coalesce(orders.stream());
-
-        assertEquals(1, flattenedOrders.size());
+    public void givenOrderAdded_whenRemoved_sizeIsReduced() throws OrderCancelledException {
+        UUID orderId = subject.add(orderBuilder.createOrder());
+        subject.remove(orderId);
+        assertEquals(subject.size(), 0);
     }
 
+    @Test
+    public void givenNonEmptyStore_ReturnsSortedListOfOrders() {
+        subject.add(orderBuilder.createOrder());
+        subject.add(orderBuilder.setPrice(UnsignedLong.valueOf(450L)).createOrder());
+
+        List<Order> sortedList = subject.getOrdersFilteredAndSorted(OrderType.BUY).collect(Collectors.toList());
+        assertEquals(sortedList.size(),2);
+        assertEquals(sortedList.get(0).getPrice(),UnsignedLong.valueOf(450L));
+    }
+
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
+
+    @Test
+    public void givenNonEmptyStore_whenCancelledTwice_throwsException() throws OrderCancelledException {
+        thrown.expect(OrderCancelledException.class);
+        UUID orderId = subject.add(orderBuilder.createOrder());
+        subject.remove(orderId);
+        subject.remove(orderId);
+    }
+
+    @Test
+    public void givenNonEmptyStore_whenInvalidOrderIdRemoved_throwsException() throws OrderCancelledException {
+        thrown.expect(OrderCancelledException.class);
+        UUID orderId = subject.add(orderBuilder.createOrder());
+        subject.remove(UUID.randomUUID());
+    }
 }

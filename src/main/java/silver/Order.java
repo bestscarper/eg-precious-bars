@@ -12,9 +12,25 @@ public class Order implements Comparable {
     }
 
     private String userId;
-    protected UnsignedLong quantityGrammes;
-    protected UnsignedLong price;
+    private UnsignedLong quantityGrammes;
+    private UnsignedLong price;
     private OrderType orderType;
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public UnsignedLong getQuantityGrammes() {
+        return quantityGrammes;
+    }
+
+    public UnsignedLong getPrice() {
+        return price;
+    }
+
+    public OrderType getOrderType() {
+        return orderType;
+    }
 
     public boolean isOfType(OrderType orderType) {
         return this.orderType.equals(orderType);
@@ -51,4 +67,5 @@ public class Order implements Comparable {
         }
         return new Order("<merged>", this.quantityGrammes.plus(order.quantityGrammes), this.price, this.orderType);
     }
+
 }
